@@ -1,33 +1,56 @@
-import React, { Component} from 'react';
-import PropTypes from 'prop-types';
+import React from 'react'
+import Helmet from 'react-helmet'
+import Link from 'gatsby-link'
+import get from 'lodash/get'
+import styles from './blog-post.module.css'
 
-class BlogPost extends Component {
+class BlogPostTemplate extends React.Component {
   render() {
-    const {
-      title,
-      content
-    } = this.props.data.contentfulBlog
+    const post = get(this.props, 'data.contentfulBlogPost')
+    const siteTitle = get(this.props, 'data.site.siteMetadata.title')
+
     return (
-      <div>
-        <h1>{title}</h1>
-        <div dangerouslySetInnerHTML={{__html: content.childMarkdownRemark.html}} />
+      <div style={{ background: '#fff' }}>
+        <Helmet title={`${post.title} | ${siteTitle}`} />
+        <div className="wrapper">
+          <div className={styles.hero}>
+            <img
+              src={`${post.heroImage.file.url}?w=1180&h=400&fit=fill`}
+              alt=""
+            />
+          </div>
+          <h1 className="section-headline">{post.title}</h1>
+          <p
+            style={{
+              display: 'block',
+            }}
+          >
+            {post.publishDate}
+          </p>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: post.body.childMarkdownRemark.html,
+            }}
+          />
+        </div>
       </div>
     )
   }
 }
 
-BlogPost.propTypes = {
-  data: PropTypes.object.isRequired
-}
-
-export default BlogPost
+export default BlogPostTemplate
 
 export const pageQuery = graphql`
-  query blogPostQuery($slug: String!){
-    contentfulBlog(slug: {eq: $slug}) {
+  query BlogPostBySlug($slug: String!) {
+    contentfulBlogPost(slug: { eq: $slug }) {
       title
-      slug
-      content {
+      publishDate(formatString: "MMMM Do, YYYY")
+      heroImage {
+        file {
+          url
+        }
+      }
+      body {
         childMarkdownRemark {
           html
         }
